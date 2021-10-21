@@ -1,10 +1,7 @@
 
-from typing import AnyStr
-from vkbottle.tools.dev_tools.keyboard.action import Payload
-from vkbottle_types.objects import MessagesPinnedMessage
-from vkbottle_types.responses.messages import EditResponseModel
 import settings, time, json, random, information, simplemysql
 import asyncio
+from vkbottle.tools.dev_tools.keyboard.action import Payload
 from vkbottle.bot import Bot, Message
 from vkbottle.tools import Keyboard, KeyboardButtonColor, Text
 from vkbottle import BaseStateGroup
@@ -14,10 +11,10 @@ from vkbottle import BaseStateGroup
 bot = Bot(token=settings.TOKEN) #### group_ids=settings.GROUP_ID
 
 database = simplemysql.Pymysql(host = settings.DB_HOST, 
-							user = settings.DB_USER, 
-							db = settings.DATABASE, 
-							password = settings.DB_PASSWORD, 
-							port = settings.DB_PORT)
+			user = settings.DB_USER, 
+			db = settings.DATABASE, 
+			password = settings.DB_PASSWORD, 
+			port = settings.DB_PORT)
 
 async def getUser(user_id):
 	try: 
