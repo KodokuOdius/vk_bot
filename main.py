@@ -1,10 +1,9 @@
-from aiohttp import payload
 from bot import BOT
 from vkbottle.bot import Message, rules
 from vkbottle import BaseStateGroup
 from vkbottle.modules import json
 import keys
-
+from custom_rules import Ban
 ####################################################
 
 # database = simplemysql.Pymysql(host = settings.DB_HOST, 
@@ -44,6 +43,11 @@ async def rock_scisors_paper(event: Message):
 async def end_rock_scissors_paper(event: Message):
 	
 	await event.answer()
+
+
+@BOT.on.message(Ban(), text=["1"])
+async def eveve(event: Message):
+	await event.answer(event)
 
 
 @BOT.on.private_message()
