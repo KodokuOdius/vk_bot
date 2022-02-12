@@ -53,7 +53,7 @@ async def denerate_password(event: Message):
 		from random import sample
 		symbols = string.ascii_letters + string.digits + "_(){}[]\/?!@*#$^<>+"
 		await event.answer(
-			"Вот твой пароль\n" +
+			f"Вот твой пароль в {event.text} символов\n" +
 			f"{''.join(sample(symbols, int(event.text)))}"
 		)
 		await BOT.state_dispenser.delete(event.from_id)
