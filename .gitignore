@@ -1,5 +1,7 @@
 .vscode
 settings.py
+temp.py
+photos/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

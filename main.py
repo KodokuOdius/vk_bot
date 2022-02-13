@@ -47,7 +47,7 @@ async def password_info(event: Message):
 
 
 @BOT.on.private_message(state=WorkStates.GEN_PASSWORD)
-async def denerate_password(event: Message):
+async def generate_password(event: Message):
 	if event.text.isdigit() and 7 < int(event.text) < 37:
 		import string
 		from random import sample
@@ -171,7 +171,15 @@ async def find_interesting_digits(event: Message):
 
 
 
-
+@BOT.on.private_message(attachment='photo')
+async def photo_trigger(event: Message):
+	import requests as req
+	
+	with open(f"photos/{event.attachments[0].photo.access_key}.png", "wb") as _out:
+		file = req.get(event.attachments[0].photo.sizes[-1].url)
+		_out.write(file.content)
+	
+	await event.answer("Скачал")
 
 
 
