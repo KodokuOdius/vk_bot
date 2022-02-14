@@ -1,12 +1,10 @@
-from fnmatch import translate
-from aiohttp import payload_type
 from bot import BOT
 from vkbottle.bot import Message, rules
 from vkbottle import BaseStateGroup
-from vkbottle.modules import json
 import keys
 from custom_rules import Ban
 from asyncio import sleep
+from vkbottle.tools import DocMessagesUploader
 
 ####################################################
 
@@ -174,12 +172,62 @@ async def find_interesting_digits(event: Message):
 @BOT.on.private_message(attachment='photo')
 async def photo_trigger(event: Message):
 	import requests as req
+	from PIL import Image
 	
-	with open(f"photos/{event.attachments[0].photo.access_key}.png", "wb") as _out:
-		file = req.get(event.attachments[0].photo.sizes[-1].url)
-		_out.write(file.content)
+	# with open(f"photos/{event.attachments[0].photo.access_key}.png", "wb") as _out:
+	# 	file = req.get(event.attachments[0].photo.sizes[-1].url)
+	# 	_out.write(file.content)
 	
-	await event.answer("Скачал")
+	await event.answer("Конвертирую.....")
+
+	_asciiTable = ".,:+*?%S#@"[::-1]
+	file = req.get(event.attachments[0].photo.sizes[-1].url)
+
+	img = Image.open(file)
+
+	WIDTH_OFFSET = 1.75
+	MAX_WIDTH = 500
+	MAX_HEIGHT = int(img.height / WIDTH_OFFSET * MAX_WIDTH / img.width)
+
+	if img.width > MAX_WIDTH or img.height > MAX_HEIGHT:
+		img = img.resize((MAX_WIDTH, MAX_HEIGHT))
+
+
+	x, y = img.size
+
+	await event.answer("Секунду....")
+
+	with open("ascii.txt", "w") as _out:
+		for i in range(y):
+			for j in range(x):
+				pixels = img.getpixel((j, i))
+				map_val = sum(pixels) / len(pixels)
+
+				_out.write(_asciiTable[ int((map_val / 255) * 9) ])
+			
+			_out.write('\n')
+		
+		# url = requests.get('https://vk.com/doc550522050_622166526?hash=db5d813ac61d66abd5&dl=8f84d53f948d3dbe3e')
+		# doc = await DocMessagesUploader(bot.api).upload(
+		# 	title='HomeWork.txt',
+		# 	file_source=url.content,
+		# 	peer_id=event.peer_id
+		# )
+		# await event.answer(attachment=doc)
+
+	doc = await DocMessagesUploader(BOT.api).upload(
+		title="Assci_photo.txt",
+		file_source="ascii.txt",
+		peer_id=event.peer_id
+	)
+
+	await event.answer(
+		"Твоя ascii фотка, прошу!",
+		attachment=doc
+	)
+
+
+
 
 
 
