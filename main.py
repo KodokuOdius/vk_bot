@@ -2,6 +2,7 @@ from bot import BOT
 from vkbottle.bot import Message, rules
 from vkbottle import BaseStateGroup
 import keys
+import functions
 from custom_rules import Ban
 from asyncio import sleep
 from vkbottle.tools import DocMessagesUploader
@@ -21,6 +22,18 @@ async def special_word(event: Message):
 	await main(event)
 
 
+@BOT.on.private_message(payload={"to_main": "main"})
+async def to_main(event: Message):
+	try:
+		await BOT.state_dispenser.delete(event.from_id)
+	except Exception:
+		pass
+	
+	await event.answer(
+		"Возврат в главное меню",
+		keyboard=keys.MainKey
+	)
+
 
 
 @BOT.on.private_message(payload={"main": "work"})
@@ -39,7 +52,8 @@ class WorkStates(BaseStateGroup):
 async def password_info(event: Message):
 	await event.answer(
 		"Просто введи длинну пароля от 8 до 36 символов\n" +
-		"На что-то другое не буду реагировать (∪.∪ )...zzz"
+		"На что-то другое не буду реагировать (∪.∪ )...zzz",
+		keyboard=keys.CancelKey
 	)
 	await BOT.state_dispenser.set(event.from_id, WorkStates.GEN_PASSWORD)
 
@@ -55,6 +69,12 @@ async def generate_password(event: Message):
 			f"{''.join(sample(symbols, int(event.text)))}"
 		)
 		await BOT.state_dispenser.delete(event.from_id)
+
+		await event.answer(
+			"Возврат в служебное меню",
+			keyboard=keys.WorkKey
+		)
+
 	else:
 		await BOT.api.messages.delete(
 			message_ids=event.id,
@@ -99,25 +119,26 @@ async def end_rock_scissors_paper(event: Message):
 		if bot_choice == event.text:
 			await event.answer(
 				f"У меня тоже {bot_choice}\n" +
-				r"Видимо ничья ¯\_(ツ)_/¯"
+				r"Видимо ничья ¯\_(ツ)_/¯",
+				keyboard=keys.EMPTY_KEYBOARD
 			)
 		elif bot_choice.count("а") > event.text.count("а") or (event.text == "Ножницы" and bot_choice == "Бумага"):
 			await event.answer(
 				f"У меня {bot_choice}\n" +
-				r"Я победил ( ͡~ ͜ʖ ͡°)"
+				r"Я победил ( ͡~ ͜ʖ ͡°)",
+				keyboard=keys.EMPTY_KEYBOARD
 			)
 		else:
 			await event.answer(
 				f"У меня  {bot_choice}\n" +
-				r"Ладно, ты победил <(＿　＿)>"
+				r"Ладно, ты победил <(＿　＿)>",
+				keyboard=keys.EMPTY_KEYBOARD
 			)
-		sleep(1)
 
 		await event.answer(
-			"Держи главное меню",
-			keyboard=keys.MainKey
+			"Возврат в игровое меню",
+			keyboard=keys.GameKey
 		)
-		
 
 		await BOT.state_dispenser.delete(event.from_id)
 
@@ -132,13 +153,15 @@ async def interesting_info(event: Message):
 
 class InterestingState(BaseStateGroup):
 	IterestingDigits = 3
+	Ascii_img = 4
 
 @BOT.on.private_message(payload={"interesting": "digits"})
 async def interesting_digits(event: Message):
 	await BOT.state_dispenser.set(event.from_id, InterestingState.IterestingDigits)
 	await event.answer(
 		"Введи любое число, а я найду интереснй факт об этом числе\n" +
-		"Если такой есть (/≧▽≦)/"
+		"Если такой есть (/≧▽≦)/",
+		keyboard=keys.CancelKey
 	)
 
 @BOT.on.private_message(state=InterestingState.IterestingDigits)
@@ -160,6 +183,12 @@ async def find_interesting_digits(event: Message):
 		await event.answer(data)
 		
 		await BOT.state_dispenser.delete(event.from_id)
+
+		await event.answer(
+			"Возврат в интересное меню",
+			keyboard=keys.InterestingKey
+		)
+
 	else:
 		# [15] Access denied: message can not be deleted (peer message)
 		await BOT.api.messages.delete(
@@ -169,69 +198,41 @@ async def find_interesting_digits(event: Message):
 
 
 
-@BOT.on.private_message(attachment='photo')
-async def photo_trigger(event: Message):
-	import requests as req
-	from PIL import Image
-	
-	# with open(f"photos/{event.attachments[0].photo.access_key}.png", "wb") as _out:
-	# 	file = req.get(event.attachments[0].photo.sizes[-1].url)
-	# 	_out.write(file.content)
-	
-	await event.answer("Конвертирую.....")
-
-	_asciiTable = ".,:+*?%S#@"[::-1]
-	file = req.get(event.attachments[0].photo.sizes[-1].url)
-
-	img = Image.open(file)
-
-	WIDTH_OFFSET = 1.75
-	MAX_WIDTH = 500
-	MAX_HEIGHT = int(img.height / WIDTH_OFFSET * MAX_WIDTH / img.width)
-
-	if img.width > MAX_WIDTH or img.height > MAX_HEIGHT:
-		img = img.resize((MAX_WIDTH, MAX_HEIGHT))
-
-
-	x, y = img.size
-
-	await event.answer("Секунду....")
-
-	with open("ascii.txt", "w") as _out:
-		for i in range(y):
-			for j in range(x):
-				pixels = img.getpixel((j, i))
-				map_val = sum(pixels) / len(pixels)
-
-				_out.write(_asciiTable[ int((map_val / 255) * 9) ])
-			
-			_out.write('\n')
-		
-		# url = requests.get('https://vk.com/doc550522050_622166526?hash=db5d813ac61d66abd5&dl=8f84d53f948d3dbe3e')
-		# doc = await DocMessagesUploader(bot.api).upload(
-		# 	title='HomeWork.txt',
-		# 	file_source=url.content,
-		# 	peer_id=event.peer_id
-		# )
-		# await event.answer(attachment=doc)
-
-	doc = await DocMessagesUploader(BOT.api).upload(
-		title="Assci_photo.txt",
-		file_source="ascii.txt",
-		peer_id=event.peer_id
+@BOT.on.private_message(payload={"interesting": "ascii_img"})
+async def ascii_info(event: Message):
+	await BOT.state_dispenser.set(event.from_id, InterestingState.Ascii_img)
+	await event.answer(
+		"Эта функция нарисует любую твою картинку из символов Ascii\n" +
+		"Тебе достаточно сейчас просто прислать мне изображение\n (〃￣︶￣)人(￣︶￣〃)",
+		keyboard=keys.CancelKey
 	)
+	
+
+@BOT.on.private_message(state=InterestingState.Ascii_img, attachment='photo')
+async def photo_trigger(event: Message):
+	await event.answer("Дай мне секунду...")
+
+	doc = await functions.Photo_to_Ascii(event)
 
 	await event.answer(
-		"Твоя ascii фотка, прошу!",
+		"Твоя ascii фотка, прошу!\n" +
+		"Рекомендованный шрифт для просмотра <<Consolas>>\n" +
+		"Либо другой Моношириный шрифт на твой вкус",
 		attachment=doc
 	)
 
+	await event.answer(
+			"Возврат в интересное меню",
+			keyboard=keys.InterestingKey
+		)
+	
+
+	await BOT.state_dispenser.delete(event.from_id)
 
 
 
 
-
-@BOT.on.private_message()
+@BOT.on.private_message(state=None)
 async def main(event: Message):
 	await event.answer(
 		message="Держи клавиатуру...",
