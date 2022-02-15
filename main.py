@@ -5,7 +5,7 @@ import keys
 import functions
 from custom_rules import Ban
 from asyncio import sleep
-from vkbottle.tools import DocMessagesUploader
+
 
 ####################################################
 
@@ -229,11 +229,53 @@ async def photo_trigger(event: Message):
 
 	await BOT.state_dispenser.delete(event.from_id)
 
+@BOT.on.private_message(func=lambda message: message.fwd_messages != [])
+async def answer_fwd(event: Message):
+	if event.text == "/c":
+		from PIL import Image, ImageDraw, ImageFont
+
+		img = Image.open("photos/c.jpg")
+
+		img = img.resize((600, 400))
+
+		img_draw = ImageDraw.Draw(img)
+
+		text = f"\"{event.fwd_messages[0].text}\""
+		user = await functions.getUser(event.fwd_messages[0].from_id)
+
+		text += f"\n{user.first_name} {user.last_name}\n©"
+
+		font = ImageFont.truetype("arial.ttf", 25)
+
+		img_draw.text(
+				(50, 75),
+				text=text,
+				font=font,
+				fill="black"
+		)
+		img.save(f"photos/{user.id}.jpg")
+
+
+		from vkbottle.tools import PhotoMessageUploader
+
+		photo = await PhotoMessageUploader(BOT.api).upload(
+        	file_source=f"photos/{user.id}.jpg",
+        	peer_id =event.from_id
+    	)
+
+		await event.answer(
+			attachment=photo
+		)
+
+		from os import remove
+		remove(f"photos/{user.id}.jpg")
+		
 
 
 
 @BOT.on.private_message(state=None)
 async def main(event: Message):
+	
 	await event.answer(
 		message="Держи клавиатуру...",
 		keyboard=keys.MainKey
