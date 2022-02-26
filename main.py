@@ -1,3 +1,4 @@
+from distutils import command
 from bot import BOT
 from vkbottle.bot import Message, rules
 from vkbottle import BaseStateGroup
@@ -255,6 +256,7 @@ async def answer_fwd(event: Message):
 		)
 		img.save(f"photos/{user.id}.jpg")
 
+		BOT.api.users.get
 
 		from vkbottle.tools import PhotoMessageUploader
 
@@ -272,6 +274,27 @@ async def answer_fwd(event: Message):
 		
 
 
+@BOT.on.private_message(text='/s <id> <text>')
+async def send_text_to_chat(event: Message, id = None, text = None):
+	try:
+		await BOT.api.messages.send(
+			chat_id=id,
+			message=text,
+			random_id=0
+		)
+	except Exception as e:
+		await event.answer(e)
+
+	else:
+		
+		await event.answer(
+			f"Сообщение отправленно в чат {id}"
+		)
+
+
+@BOT.on.message()
+async def testick(event: Message):
+	await event.answer(event)
 
 @BOT.on.private_message(state=None)
 async def main(event: Message):
