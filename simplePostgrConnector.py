@@ -1,5 +1,4 @@
 import psycopg2
-import settings
 from typing_extensions import Literal
 
 
@@ -30,7 +29,7 @@ class PostgrDB:
 
 
 
-    def request(self, request, mode: Literal["fetchone", "fetchall", "fetchmany", "result"]):
+    def request(self, request, mode=None): # Literal["fetchone", "fetchall", "fetchmany", "result"]
         connector = None
         try:
             connector = psycopg2.connect(
@@ -43,6 +42,9 @@ class PostgrDB:
 
             with connector.cursor() as cursor:
                 cursor.execute(request)
+
+                if mode is None:
+                    return None
 
                 modes = {
                     "fetchone": cursor.fetchone,
@@ -64,10 +66,3 @@ class PostgrDB:
 
 
 
-db = PostgrDB(
-    database_name=settings.database,
-    user=settings.user,
-    user_password=settings.user_password + "44",
-    host=settings.host,
-    port=settings.port
-)

@@ -1,4 +1,4 @@
-from bot import BOT
+from config.bot import BOT
 from settings import GROUP_ID
 from vkbottle.tools import DocMessagesUploader
 

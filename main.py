@@ -1,10 +1,9 @@
-from distutils import command
-from bot import BOT
+from config.bot import BOT
+from config.databese import DB
 from vkbottle.bot import Message, rules
 from vkbottle import BaseStateGroup
 import keys
 import functions
-from custom_rules import Ban
 from asyncio import sleep
 
 
@@ -292,9 +291,12 @@ async def send_text_to_chat(event: Message, id = None, text = None):
 		)
 
 
-@BOT.on.message()
-async def testick(event: Message):
-	await event.answer(event)
+@BOT.on.private_message(text="/reg")
+async def reg_user(event: Message):
+	DB.request(f"UPDATE vk_bot SET (vk_id, user_name) VALUES ({event.from_id}, 'user');")
+	await event.answer("Сделанно")
+
+
 
 @BOT.on.private_message(state=None)
 async def main(event: Message):
